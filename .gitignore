@@ -1,0 +1,29 @@
+# 构建产物（可重新生成）
+**/mod-dist/
+**/mod-dist-free/
+**/_web/
+*.zip
+
+# 编译出的二进制
+loader/server.exe
+**/check.exe
+**/*.exe.tmp
+
+# 体积大的 fixture（不进 git；成品在 Releases，源码构建请自备）
+course/tools/
+course/demo/
+
+# python / 杂项
+**/__pycache__/
+*.pyc
+
+# 材料构造工作区（作者 IP，不外发；靶包/kit 成品在 材料/ 里已够用）
+**/_材料源/
+**/_diag/
+**/_scratch/
+
+# 所有 _ 前缀目录：内部源码/构造/暂存，永不外发（含 _src 的 check.go flag 常量）
+**/_*/
+
+# 所有编译二进制:git 只放源码/内容,可运行成品在 Releases
+**/*.exe

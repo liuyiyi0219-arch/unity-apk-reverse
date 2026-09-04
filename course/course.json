@@ -1,0 +1,8 @@
+{
+  "id": "unity-apk-reverse",
+  "engine": "urev-tower",
+  "full": {
+    "name": "Unity APK 逆向入门",
+    "description": "动手扒开一个 Unity 手游，解出 C# / Lua / 资源 / Java"
+  }
+}
