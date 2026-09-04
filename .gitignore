@@ -1,0 +1,23 @@
+# 构建产物（可重新生成）
+**/mod-dist/
+**/mod-dist-free/
+**/_web/
+*.zip
+
+# 编译出的二进制
+loader/server.exe
+**/check.exe
+**/*.exe.tmp
+
+# 体积大的 fixture（不进 git；成品在 Releases，源码构建请自备）
+course/tools/
+course/demo/
+
+# python / 杂项
+**/__pycache__/
+*.pyc
+
+# 材料构造工作区（作者 IP，不外发；靶包/kit 成品在 材料/ 里已够用）
+**/_材料源/
+**/_diag/
+**/_scratch/

@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unity 逆向 · 爬塔</title>
+<script src="maps.js"></script>
+<script src="content.js"></script>
+<script src="manifest.js"></script>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b22; --line:#2b3442; --edge:#39424f;
+    --txt:#e6edf3; --dim:#7d8794; --accent:#4ea1ff;
+    --cleared:#3fb950; --unlocked:#e3b341; --locked:#3a424e; --pending:#5a4a6a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 800px at 50% -10%,#182233,var(--bg));
+    color:var(--txt);font:15px/1.6 "Segoe UI","Microsoft YaHei",system-ui,sans-serif;height:100vh;overflow:hidden}
+  header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:#0d1117cc;backdrop-filter:blur(6px)}
+  header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.5px}
+  header .sub{color:var(--dim);font-size:12px}
+  select,button{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+  button:hover,select:hover{border-color:var(--accent)}
+  .bar{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .prog{width:200px;height:10px;border-radius:6px;background:#0d1117;border:1px solid var(--line);overflow:hidden}
+  .prog>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3fb950,#4ea1ff);transition:width .5s}
+  #stage{position:relative;height:calc(100vh - 55px);overflow:auto}
+  svg{display:block;margin:0 auto}
+  .edge{stroke:var(--edge);stroke-width:2;fill:none}
+  .edge.live{stroke:#3fb95077}
+  .node{cursor:pointer}
+  .node .id{font-weight:700;font-size:13px}
+  .node .ti{font-size:12px;fill:var(--dim)}
+  .n-cleared .card{fill:#12351f;stroke:var(--cleared)}
+  .n-cleared .id{fill:var(--cleared)}
+  .n-unlocked .card{fill:#2a2410;stroke:var(--unlocked);animation:pulse 2s infinite}
+  .n-unlocked .id{fill:var(--unlocked)}
+  .n-locked .card{fill:#161b22;stroke:var(--locked)}
+  .n-locked .id{fill:#5b6470}.n-locked .ti{fill:#4a525e}
+  .n-pending .card{fill:#1c1726;stroke:var(--pending);stroke-dasharray:5 4}
+  .n-pending .id{fill:#a98fd0}
+  @keyframes pulse{0%,100%{filter:drop-shadow(0 0 6px #e3b34140)}50%{filter:drop-shadow(0 0 14px #e3b34188)}}
+  .actlabel{fill:#5b6470;font-size:13px;font-weight:600}
+  #panel{position:fixed;top:0;right:-400px;width:380px;height:100%;background:var(--panel);border-left:1px solid var(--line);
+    padding:22px;transition:right .28s;box-shadow:-8px 0 30px #0008;overflow:auto;z-index:6}
+  #panel.open{right:0}
+  #panel h2{margin:.2em 0;font-size:19px}
+  #panel .kind{display:inline-block;padding:2px 10px;border-radius:20px;font-size:12px;margin-bottom:10px}
+  #panel .meta{color:var(--dim);font-size:13px;margin:6px 0 16px}
+  #panel .st{font-size:14px;margin:10px 0}
+  #panel .acts{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+  #panel .acts button{padding:13px;font-size:15px;text-align:left}
+  #panel .acts .lesson{border-color:#3a5578}
+  #panel .acts .hw{border-color:#7a6320;background:#22200f}
+  #panel .acts small{display:block;color:var(--dim);font-weight:400;margin-top:3px;font-size:12px}
+  #panel .x{position:absolute;top:12px;right:16px;background:none;border:0;color:var(--dim);font-size:22px}
+  #modal{position:fixed;inset:0;background:#000a;display:none;z-index:10;padding:34px}
+  #modal.open{display:flex}
+  #modal .box{margin:auto;width:min(920px,100%);max-height:100%;background:#0f141b;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;box-shadow:0 20px 60px #000b}
+  #modal .top{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--line)}
+  #modal .top .tag{padding:2px 10px;border-radius:20px;font-size:12px}
+  #modal .top h3{margin:0;font-size:16px;flex:1}
+  #modal .close{background:none;border:0;color:var(--dim);font-size:24px}
+  .md{padding:24px 30px;overflow:auto;line-height:1.75}
+  .md h1{font-size:24px;border-bottom:1px solid var(--line);padding-bottom:8px}
+  .md h2{font-size:20px;margin-top:1.4em;border-bottom:1px solid #21262d;padding-bottom:5px}
+  .md h3{font-size:16px;margin-top:1.2em;color:#cbd5e1}
+  .md h4{font-size:14px;color:#9fb0c4}
+  .md p{margin:.7em 0}
+  .md code{background:#161b22;border:1px solid #21262d;border-radius:5px;padding:1px 6px;font-family:Consolas,monospace;font-size:13px;color:#e6b673}
+  .md pre{background:#0b0f14;border:1px solid #21262d;border-radius:8px;padding:14px;overflow:auto}
+  .md pre code{background:none;border:0;padding:0;color:#c9d4e0;font-size:13px}
+  .md blockquote{border-left:3px solid #30475e;margin:.7em 0;padding:.2em 14px;color:#9aa7b4;background:#0d141c;font-size:13.5px}
+  .md details.answer{margin:16px 0 4px;border:1px solid #2e6b4a;border-radius:8px;background:#0e1a12;overflow:hidden}
+  .md details.answer>summary{cursor:pointer;list-style:none;padding:11px 14px;font-weight:600;color:#8fe0b0;background:#12251a;user-select:none}
+  .md details.answer>summary::-webkit-details-marker{display:none}
+  .md details.answer>summary:hover{background:#163021}
+  .md details.answer>summary::before{content:"▸ ";color:#5aa}
+  .md details.answer[open]>summary::before{content:"▾ "}
+  .md details.answer[open]>summary{border-bottom:1px solid #2e6b4a}
+  .md .answer-body{padding:2px 14px 10px}
+  /* 主菜单 */
+  #menu{position:fixed;inset:0;z-index:50;background:radial-gradient(1200px 600px at 50% -10%,#16233a 0%,#0a0f16 60%);overflow:auto;display:flex}
+  #menu.hidden{display:none}
+  .menu-inner{margin:auto;max-width:960px;width:100%;padding:48px 24px}
+  .menu-hero{text-align:center;margin-bottom:36px}
+  .menu-hero .menu-logo{font-size:56px;line-height:1}
+  .menu-hero h1{font-size:30px;margin:.3em 0 .15em;color:#e8eef5}
+  .menu-hero p{color:#8b9bb0;margin:0}
+  .mod-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+  .mod-card{border:1px solid #2b3a52;border-radius:12px;background:#111b28;padding:18px 18px 16px;cursor:pointer;transition:.12s;position:relative}
+  .mod-card:hover{border-color:#3f7fd0;background:#132133;transform:translateY(-2px)}
+  .mod-card h3{margin:0 0 4px;color:#eaf1f8;font-size:18px}
+  .mod-card .ver{color:#5aa;font-size:12px;font-weight:600}
+  .mod-card .desc{color:#93a3b6;font-size:13px;margin:8px 0 12px;min-height:34px}
+  .mod-card .stat{display:flex;gap:14px;color:#7d8ea3;font-size:12px;margin-bottom:12px}
+  .mod-card .stat b{color:#b7c6d8}
+  .mod-card .go{display:inline-block;padding:7px 16px;border-radius:7px;background:#1f6feb;color:#fff;font-weight:600;font-size:13px}
+  .mod-card:hover .go{background:#2f80ff}
+  .mod-card.dev{border-style:dashed;border-color:#4a5a2e}
+  .mod-card.dev .go{background:#3a5a1f}
+  .mod-card .badge{position:absolute;top:12px;right:12px;font-size:11px;color:#8fe0b0;background:#12351f;border:1px solid #2e6b4a;border-radius:20px;padding:1px 9px}
+  .mod-card.import{border-style:dashed;border-color:#37506e;background:#0e1621;display:flex;align-items:center;justify-content:center;text-align:center;min-height:150px}
+  .mod-card.import:hover{border-color:#3f7fd0;background:#111d2c}
+  .mod-card.import .imp-plus{font-size:34px;color:#6aa0dd;line-height:1;margin-bottom:6px}
+  .mod-card.import h3{font-size:16px}
+  .course-row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:2px}
+  .course-lbl{color:#7d8ea3;font-size:13px;margin-right:2px}
+  .course-pill{padding:5px 13px;border-radius:20px;border:1px solid #2b3a52;background:#111b28;color:#b7c6d8;font-size:13px;cursor:pointer}
+  .course-pill.on{border-color:#3f7fd0;background:#17263a;color:#eaf1f8;cursor:default}
+  .course-pill:not(.on):hover{border-color:#3f7fd0}
+  .menu-foot{text-align:center;color:#5c6b7d;font-size:12px;margin-top:28px;min-height:18px}
+  #tomenu{background:#1a2534;border-color:#2b3a52}
+  .md ul,.md ol{padding-left:26px}.md li{margin:.3em 0}
+  .md table{border-collapse:collapse;margin:1em 0;font-size:13.5px}
+  .md th,.md td{border:1px solid #2b3442;padding:6px 12px;text-align:left}
+  .md th{background:#161b22}
+  .md hr{border:0;border-top:1px solid #21262d;margin:1.4em 0}
+  .md .lnk{color:#4ea1ff;text-decoration:underline dotted;cursor:help}
+  .verify{border-top:1px solid var(--line);padding:16px 24px;background:#0c1219}
+  .verify .path{background:#0b0f14;border:1px solid #21262d;border-radius:7px;padding:9px 12px;font-family:Consolas,monospace;font-size:13px;color:#9fb4d4;margin-bottom:10px}
+  .verify label{font-size:13px;color:var(--dim);display:block;margin-bottom:5px}
+  .verify input,.verify textarea{width:100%;padding:11px;border-radius:8px;border:1px solid var(--line);background:#0d1117;color:var(--txt);font:inherit}
+  .verify textarea{min-height:120px;font-family:Consolas,monospace;font-size:13px;resize:vertical;white-space:pre}
+  .verify .go{margin-top:10px;background:var(--accent);border:0;color:#04101f;font-weight:700;padding:11px 22px}
+  .verify .go[disabled]{opacity:.5;cursor:not-allowed}
+  .verify a.dl{display:inline-block;margin-bottom:12px;text-decoration:none;background:#182b1a;border:1px solid #2e5a34;color:#9fe0a8;padding:9px 14px;border-radius:8px;font-size:14px}
+  .verify a.dl:hover{border-color:#3fb950}
+  .verify .msg{margin-top:10px;font-size:13.5px;min-height:18px}
+  .verify .msg.ok{color:var(--cleared)}.verify .msg.bad{color:#f0716f}
+  .out{margin-top:10px;background:#07090d;border:1px solid #21262d;border-radius:8px;padding:12px;font-family:Consolas,monospace;font-size:12.5px;color:#c9d4e0;white-space:pre-wrap;max-height:220px;overflow:auto;display:none}
+  .out.show{display:block}
+  #banner{display:none;background:#3a1d1d;border-bottom:1px solid #6a3030;color:#ffb4b4;padding:8px 20px;font-size:13px}
+  #banner.show{display:block}
+  #banner code{background:#00000040;padding:1px 6px;border-radius:4px}
+  .demorow{margin:14px 0}
+  .demorow button{background:#182b1a;border:1px solid #2e5a34;color:#9fe0a8;padding:10px 16px}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#161b22;border:1px solid var(--line);
+    border-radius:10px;padding:10px 18px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="banner">⚠ 没连上本地 server —— 批改/演示要它。双击 <code>爬塔/server/server.exe</code> 启动，然后刷新本页（用 <code>http://127.0.0.1:8770/</code> 打开）。</div>
+
+<!-- 游戏主菜单：列出客户端里的课程包（mod），点一张卡进去爬塔 -->
+<div id="menu">
+  <div class="menu-inner">
+    <div class="menu-hero">
+      <h1>课包列表</h1>
+      <p>选一门，点进去开始。</p>
+    </div>
+    <div id="mod-cards" class="mod-cards"></div>
+    <div class="menu-foot" id="menu-foot"></div>
+  </div>
+</div>
+
+<header>
+  <h1>🗼 Unity 逆向 · 爬塔</h1>
+  <span class="sub" id="mapdesc"></span>
+  <div class="bar">
+    <button id="tomenu" title="回课程菜单">← 菜单</button>
+    <select id="mapsel" title="切换地图"></select>
+    <div class="prog"><i id="progbar"></i></div>
+    <span class="sub" id="progtxt">0/0</span>
+    <button id="cheat" title="调试用：面板里多一个「直接通关」按钮">🐞 作弊</button>
+    <button id="reset" title="清空本塔进度">重置</button>
+  </div>
+</header>
+<div id="stage"><svg id="svg"></svg></div>
+
+<aside id="panel">
+  <button class="x" onclick="closePanel()">×</button>
+  <span class="kind" id="p-kind"></span>
+  <h2 id="p-title"></h2>
+  <div class="meta" id="p-req"></div>
+  <div class="st" id="p-st"></div>
+  <div class="acts" id="p-acts"></div>
+</aside>
+
+<div id="modal">
+  <div class="box">
+    <div class="top">
+      <span class="tag" id="m-tag"></span>
+      <h3 id="m-title"></h3>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+    <div class="md" id="m-body"></div>
+    <div class="verify" id="m-verify" style="display:none">
+      <div class="path" id="m-path"></div>
+      <div id="m-form"></div>
+      <button class="go" id="m-run" onclick="runCheck()">▶ 运行批改</button>
+      <pre class="out" id="m-out"></pre>
+      <div class="msg" id="m-msg"></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const NW=170, NH=56, GAPX=26, BANDH=118, PADX=40, PADY=40;
+const TYPEBADGE={rest:"环境/理论",normal:"普通",elite:"⭐ 精英",boss:"🏛 Boss",final:"👑 FINAL"};
+const KINDCOLOR={rest:"#3a424e",normal:"#2b3442",elite:"#7a5a1a",boss:"#5a2a2a",final:"#6a3a10"};
+let MAP, byId, cleared, curNode, SERVER=false, CHEAT=localStorage.getItem("tower-cheat")==="1";
+const C = window.TOWER_CONTENT || {};
+const MFT = window.TOWER_MANIFEST || {};
+
+function keyOf(id){return "tower-progress-"+id}
+function loadProg(){try{return new Set(JSON.parse(localStorage.getItem(keyOf(MAP.id))||"[]"))}catch(e){return new Set()}}
+function saveProg(){localStorage.setItem(keyOf(MAP.id),JSON.stringify([...cleared]))}
+function unlocked(n){return (n.requires||[]).every(r=>cleared.has(r))}
+function content(n){return C[n.chapter]||{}}
+function hasHW(n){return !!(content(n).hasCheck && n.flag)}
+function isMilestone(n){return !n.flag && !content(n).hasCheck}  // 只读/登顶节点：没作业检查器
+function state(n){
+  if(cleared.has(n.id))return"cleared";
+  if(!unlocked(n))return"locked";
+  if(n.flag||isMilestone(n))return"unlocked";
+  return"pending";                                              // 作业还没就绪
+}
+
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function inlineMd(s){return esc(s)
+  .replace(/`([^`]+)`/g,'<code>$1</code>')
+  .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+  .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<span class="lnk" title="$2">$1</span>');}
+function mdToHtml(md){
+  const L=(md||"").replace(/\r/g,"").split("\n");let h="",i=0,code=false,buf=[],lt=null;
+  const closeL=()=>{if(lt){h+="</"+lt+">";lt=null;}};
+  while(i<L.length){let ln=L[i];
+    if(ln.startsWith("```")){if(!code){code=true;buf=[];}else{code=false;closeL();h+="<pre><code>"+esc(buf.join("\n"))+"</code></pre>";}i++;continue;}
+    if(code){buf.push(ln);i++;continue;}
+    if(ln.includes("|")&&i+1<L.length&&/^\s*\|?\s*:?-{2,}/.test(L[i+1])){
+      closeL();const cells=r=>r.split("|").map(c=>c.trim()).filter((c,idx,a)=>!((idx===0||idx===a.length-1)&&c===""));
+      h+="<table><tr>"+cells(ln).map(c=>"<th>"+inlineMd(c)+"</th>").join("")+"</tr>";i+=2;
+      while(i<L.length&&L[i].includes("|")){h+="<tr>"+cells(L[i]).map(c=>"<td>"+inlineMd(c)+"</td>").join("")+"</tr>";i++;}
+      h+="</table>";continue;}
+    let m;
+    if(m=ln.match(/^(#{1,6})\s+(.*)/)){closeL();const l=m[1].length;h+="<h"+l+">"+inlineMd(m[2])+"</h"+l+">";}
+    else if(/^\s*>/.test(ln)){closeL();h+="<blockquote>"+inlineMd(ln.replace(/^\s*>\s?/,""))+"</blockquote>";}
+    else if(/^\s*[-*]\s+/.test(ln)){if(lt!=="ul"){closeL();h+="<ul>";lt="ul";}h+="<li>"+inlineMd(ln.replace(/^\s*[-*]\s+/,""))+"</li>";}
+    else if(/^\s*\d+\.\s+/.test(ln)){if(lt!=="ol"){closeL();h+="<ol>";lt="ol";}h+="<li>"+inlineMd(ln.replace(/^\s*\d+\.\s+/,""))+"</li>";}
+    else if(/^\s*---+\s*$/.test(ln)){closeL();h+="<hr>";}
+    else if(ln.trim()===""){closeL();}
+    else{closeL();h+="<p>"+inlineMd(ln)+"</p>";}
+    i++;}
+  closeL();if(code)h+="<pre><code>"+esc(buf.join("\n"))+"</code></pre>";return h;
+}
+
+function layout(){
+  const acts=MAP.acts,pos={};
+  const perAct=acts.map(a=>MAP.nodes.filter(n=>n.act===a.id));
+  const maxCols=Math.max(...perAct.map(a=>a.length),1);
+  const W=PADX*2+maxCols*(NW+GAPX)-GAPX,H=PADY*2+acts.length*BANDH;
+  acts.forEach((a,ai)=>{const row=perAct[ai];const y=H-PADY-BANDH*ai-BANDH/2;
+    const rowW=row.length*(NW+GAPX)-GAPX,x0=(W-rowW)/2;
+    row.forEach((n,i)=>{const x=x0+i*(NW+GAPX);pos[n.id]={x,y:y-NH/2,cx:x+NW/2,cy:y};});});
+  return{pos,W,H};
+}
+function render(){
+  const {pos,W,H}=layout(),svg=document.getElementById("svg");
+  svg.setAttribute("width",W);svg.setAttribute("height",H);let s="";
+  MAP.nodes.forEach(n=>(n.requires||[]).forEach(r=>{if(!pos[r]||!pos[n.id])return;
+    const a=pos[r],b=pos[n.id],live=cleared.has(r)?"live":"",my=(a.cy+b.cy)/2;
+    s+=`<path class="edge ${live}" d="M${a.cx},${a.cy} C${a.cx},${my} ${b.cx},${my} ${b.cx},${b.cy}"/>`;}));
+  MAP.acts.forEach((a,ai)=>{const y=H-PADY-BANDH*ai-BANDH/2;s+=`<text class="actlabel" x="12" y="${y-30}">${esc(a.title)}</text>`;});
+  MAP.nodes.forEach(n=>{const p=pos[n.id],st=state(n);
+    const ti=n.title.length>11?n.title.slice(0,11)+"…":n.title;
+    const badge={rest:"·",normal:"",elite:"⭐",boss:"🏛",final:"👑"}[n.type]||"";
+    const icon={cleared:"✅",unlocked:"🟢",locked:"🔒",pending:"⏳"}[st];
+    s+=`<g class="node n-${st}" onclick="pick('${n.id}')" transform="translate(${p.x},${p.y})">
+      <rect class="card" width="${NW}" height="${NH}" rx="12"/>
+      <text class="id" x="12" y="22">${icon} ${esc(n.id)}</text>
+      <text x="${NW-10}" y="20" text-anchor="end" font-size="12" fill="#c9a227">${badge}</text>
+      <text class="ti" x="12" y="42">${esc(ti)}</text></g>`;});
+  svg.innerHTML=s;
+  const done=MAP.nodes.filter(n=>cleared.has(n.id)).length,tot=MAP.nodes.length;
+  document.getElementById("progbar").style.width=(done/tot*100)+"%";
+  document.getElementById("progtxt").textContent=done+"/"+tot;
+  if(done===tot)toast("🏆 全塔通关！");
+}
+
+function pick(id){
+  const n=byId[id];curNode=n;const st=state(n),ct=content(n);
+  document.getElementById("p-kind").textContent=TYPEBADGE[n.type]||"节点";
+  document.getElementById("p-kind").style.background=KINDCOLOR[n.type]||"#2b3442";
+  document.getElementById("p-title").textContent=n.id+"　"+n.title;
+  document.getElementById("p-req").textContent=(n.requires&&n.requires.length)?("前置："+n.requires.join("、")):"起点（无前置）";
+  const stTxt={cleared:"✅ 已点亮",unlocked:"🟢 已解锁，去做作业",locked:"🔒 锁着（先清前置："+(n.requires||[]).filter(r=>!cleared.has(r)).join("、")+"）",pending:"⏳ 这章作业还没就绪"}[st];
+  document.getElementById("p-st").textContent=stTxt;
+  const acts=document.getElementById("p-acts");acts.innerHTML="";
+  if(ct.lesson){const b=document.createElement("button");b.className="lesson";
+    b.innerHTML="📖 课程<small>读这一章的讲义</small>";b.onclick=()=>openLesson(n);acts.appendChild(b);}
+  const b2=document.createElement("button");b2.className="hw";
+  if(st==="locked"){b2.innerHTML="✍ 做作业<small>先清前置才能开</small>";b2.disabled=true;b2.style.opacity=.5;}
+  else if(hasHW(n)){b2.innerHTML="✍ 做作业<small>看题干 → 做题 → 交 flag 验证</small>";b2.onclick=()=>openHW(n);}
+  else if(isMilestone(n)){const fin=n.type==="final";
+    b2.innerHTML=(fin?"🏆 登顶":"✔ 标记已读")+"<small>"+(fin?"前置全通，登顶通关！":"读完点亮")+"</small>";
+    b2.onclick=()=>{markDone(n);pick(n.id);};}
+  else{b2.innerHTML="✍ 做作业<small>作业还没就绪</small>";b2.disabled=true;b2.style.opacity=.5;}
+  acts.appendChild(b2);
+  if(CHEAT&&!cleared.has(n.id)){const cb=document.createElement("button");
+    cb.style.borderColor="#8a5cff";cb.style.background="#1e1630";
+    cb.innerHTML="🐞 直接通关<small>调试：不做作业直接点亮 + 解锁</small>";
+    cb.onclick=()=>{markDone(n);pick(n.id);};acts.appendChild(cb);}
+  document.getElementById("panel").classList.add("open");
+}
+function closePanel(){document.getElementById("panel").classList.remove("open")}
+
+function openModal(tag,tagColor,title,md,showVerify,answerMd){
+  document.getElementById("m-tag").textContent=tag;
+  document.getElementById("m-tag").style.background=tagColor;
+  document.getElementById("m-title").textContent=title;
+  const body=document.getElementById("m-body");
+  // 题干正常显示；作业的答案是【另存的独立文件】，网页里默认折叠，点开才看解法+知识点。
+  let html=mdToHtml(md);
+  if(answerMd&&answerMd.trim()){
+    html+='<details class="answer"><summary>📖 展开答案（先自己做，卡住了再看：解法步骤 + 知识点解析）</summary>'+
+          '<div class="answer-body">'+mdToHtml(answerMd)+'</div></details>';
+  }
+  body.innerHTML=html;
+  body.scrollTop=0;
+  document.getElementById("m-verify").style.display=showVerify?"block":"none";
+  document.getElementById("modal").classList.add("open");
+}
+function closeModal(){document.getElementById("modal").classList.remove("open")}
+function openLesson(n){
+  openModal("📖 课程",KINDCOLOR[n.type]||"#2b3442",n.id+" · "+n.title,content(n).lesson,false);
+  const m=MFT[n.id]||{};
+  if(m.demo){const body=document.getElementById("m-body"),div=document.createElement("div");
+    div.className="demorow";
+    div.innerHTML='<button>▶ 运行演示程序</button> <span style="color:var(--dim);font-size:12px">'+esc(m.demo)+'</span><pre class="out"></pre>';
+    body.insertBefore(div,body.firstChild);
+    const outEl=div.querySelector("pre"),btn=div.querySelector("button");
+    btn.onclick=()=>runDemo(n,outEl,btn);}
+}
+function openHW(n){
+  curNode=n;const done=cleared.has(n.id),m=MFT[n.id]||{};
+  openModal(done?"✍ 作业 · 已通关":"✍ 作业",done?"#12351f":"#22200f",n.id+" · "+n.title,content(n).homework,true,content(n).answer);
+  const path=document.getElementById("m-path"),form=document.getElementById("m-form"),
+        out=document.getElementById("m-out"),msg=document.getElementById("m-msg"),run=document.getElementById("m-run");
+  out.className="out";out.textContent="";msg.className="msg";msg.textContent=done?"✅ 这个节点已经点亮。":"";
+  if(m.mode==="env"){
+    path.textContent="这一课不用交答案 —— 点下面按钮，server 去你本机探一遍环境，配好了就过。";
+    form.innerHTML='<div style="color:var(--dim);font-size:13px">环境体检：检查这一课需要的东西装好没；必需项全绿就点亮。</div>';
+    run.textContent="▶ 运行环境检查";
+  }else if(m.mode==="flag"){
+    path.textContent="按题干把 flag 拼出来，填到下面 → 运行批改。";
+    form.innerHTML='<label>输入你拼出的 flag</label><input id="ans" placeholder="FLAG{urev-'+esc(n.id)+'-...}" autocomplete="off">';
+    run.textContent="▶ 运行批改";
+  }else if(m.mode==="upload"){
+    path.textContent="下载靶子 APK → 重打包（塞 change.txt + 对齐 + 重签）→ 选文件上传 → 批改。";
+    form.innerHTML='<label>选择你重打包好的 APK</label><input id="ans" type="file" accept=".apk,application/vnd.android.package-archive">';
+    run.textContent="▶ 上传并批改";
+  }else if(m.mode==="args"){
+    const vals=(m.usage||"").replace(/^.*check\.exe\s*/,"");
+    path.textContent="把题干里算出来的答案填进来 → 运行批改。";
+    form.innerHTML='<label>答案（题干里 check.exe 后面那串，多个用空格隔开）</label><input id="ans" placeholder="'+esc(vals)+'" autocomplete="off">';
+    run.textContent="▶ 运行批改";
+  }else{
+    path.textContent="把你的答案文件（"+(m.answerName||"answer.txt")+"）内容贴进来 → 运行批改。";
+    form.innerHTML='<label>答案文件内容（'+esc(m.answerName||"answer.txt")+'）</label><textarea id="ans" placeholder="把答案贴到这里…"></textarea>';
+    run.textContent="▶ 运行批改";
+  }
+  // 有材料就在最上面挂一个下载按钮（任何模式通用：靶子 APK / 要读的代码 zip 等）
+  if(m.material){const fn=m.material.split("/").pop();
+    form.innerHTML='<a class="dl" href="/api/material?node='+encodeURIComponent(n.id)+'">⬇ 下载材料（'+esc(fn)+'）</a>'+form.innerHTML;}
+  run.disabled=done;
+  const ans=document.getElementById("ans");if(ans&&!done)ans.focus();
+  if(ans&&(m.mode==="args"||m.mode==="flag"))ans.onkeydown=e=>{if(e.key==="Enter")runCheck();};
+}
+async function runCheck(){
+  const n=curNode,m=MFT[n.id]||{},run=document.getElementById("m-run"),
+        out=document.getElementById("m-out"),msg=document.getElementById("m-msg");
+  if(!SERVER){msg.className="msg bad";msg.textContent="没连上 server，先启动 server.exe 再刷新。";return;}
+  let body;
+  if(m.mode==="upload"){
+    const fi=document.getElementById("ans");
+    if(!fi||!fi.files||!fi.files[0]){msg.className="msg bad";msg.textContent="先选一个 APK 文件再上传。";return;}
+    run.disabled=true;msg.className="msg";msg.textContent="⏳ 上传 + 批改中…";out.className="out";
+    body={node:n.id,fileB64:await fileToB64(fi.files[0])};
+  }else{
+    const val=(document.getElementById("ans")||{}).value||"";
+    body=m.mode==="env"?{node:n.id}:(m.mode==="args"||m.mode==="flag")?{node:n.id,params:val}:{node:n.id,answer:val};
+    run.disabled=true;msg.className="msg";msg.textContent="⏳ 批改中…";out.className="out";
+  }
+  try{
+    const r=await fetch("/api/check",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const d=await r.json();
+    out.className="out show";out.textContent=d.output||d.error||"(无输出)";
+    if(d.ok){
+      const fresh=!cleared.has(n.id);cleared.add(n.id);saveProg();render();
+      msg.className="msg ok";msg.textContent="✅ 批改通过！"+(d.flag||"")+" —— 节点点亮 🎉";
+      document.getElementById("m-tag").textContent="✍ 作业 · 已通关";document.getElementById("m-tag").style.background="#12351f";
+      if(fresh){const nx=MAP.nodes.filter(x=>!cleared.has(x.id)&&(x.requires||[]).includes(n.id)&&unlocked(x));
+        if(nx.length)toast("🔓 解锁："+nx.map(x=>x.id+" "+x.title).join("、"));}
+    }else{msg.className="msg bad";msg.textContent="✘ 没过。看下面输出的提示改改再试。";run.disabled=false;}
+  }catch(e){msg.className="msg bad";msg.textContent="批改请求失败："+e;run.disabled=false;}
+}
+async function runDemo(n,outEl,btn){
+  if(!SERVER){outEl.className="out show";outEl.textContent="没连上 server，先启动 server.exe。";return;}
+  btn.disabled=true;outEl.className="out show";outEl.textContent="⏳ 运行中…";
+  try{const r=await fetch("/api/demo",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({node:n.id})});
+    const d=await r.json();outEl.textContent=d.output||d.error||"(无输出)";
+  }catch(e){outEl.textContent="运行失败："+e;}
+  btn.disabled=false;
+}
+function fileToB64(file){return new Promise((res,rej)=>{const r=new FileReader();
+  r.onload=()=>res((r.result||"").split(",").pop());r.onerror=rej;r.readAsDataURL(file);});}
+function markDone(n){if(cleared.has(n.id))return;cleared.add(n.id);saveProg();render();
+  const nx=MAP.nodes.filter(x=>!cleared.has(x.id)&&(x.requires||[]).includes(n.id)&&unlocked(x));
+  if(nx.length)toast("🔓 解锁："+nx.map(x=>x.id+" "+x.title).join("、"));}
+
+let toastT;function toast(t){const el=document.getElementById("toast");el.textContent=t;el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("show"),2600)}
+
+function loadMap(id){MAP=window.TOWER_MAPS[id];byId={};MAP.nodes.forEach(n=>byId[n.id]=n);
+  cleared=loadProg();closePanel();closeModal();
+  document.getElementById("mapdesc").textContent=MAP.desc||"";render();}
+let towerInited=false, MODS=[], ACTIVE="";
+function initTower(mapId){
+  if(towerInited){if(mapId){loadMap(mapId);document.getElementById("mapsel").value=mapId;}return;}
+  towerInited=true;
+  const sel=document.getElementById("mapsel"),maps=window.TOWER_MAPS||{};
+  Object.values(maps).forEach(m=>{const o=document.createElement("option");o.value=m.id;o.textContent=m.title;sel.appendChild(o);});
+  const first=mapId||(Object.keys(maps).includes("full")?"full":Object.keys(maps)[0]);
+  sel.value=first;sel.onchange=()=>loadMap(sel.value);
+  document.getElementById("reset").onclick=()=>{if(confirm("清空这座塔的进度？")){localStorage.removeItem(keyOf(MAP.id));cleared=new Set();render();closePanel();}};
+  const cheatBtn=document.getElementById("cheat");
+  const paintCheat=()=>{cheatBtn.style.background=CHEAT?"#3a2d0f":"";cheatBtn.style.borderColor=CHEAT?"#e3b341":"";cheatBtn.textContent=CHEAT?"🐞 作弊 ✓":"🐞 作弊";};
+  paintCheat();
+  cheatBtn.onclick=()=>{CHEAT=!CHEAT;localStorage.setItem("tower-cheat",CHEAT?"1":"0");paintCheat();
+    if(curNode&&document.getElementById("panel").classList.contains("open"))pick(curNode.id);};
+  if(/(?:^|[#&])cheat=1/.test(location.hash||"")){CHEAT=true;localStorage.setItem("tower-cheat","1");paintCheat();}
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){closeModal();closePanel();}});
+  loadMap(first);
+  // 深链：#done=id,id,... —— 导入/预演一批已点亮节点（分享进度用）
+  const dm=(location.hash||"").match(/done=([^&]+)/);
+  if(dm){decodeURIComponent(dm[1]).split(",").forEach(id=>{if(byId[id.trim()])cleared.add(id.trim());});saveProg();render();}
+  // 深链：#open=<节点id>&mode=lesson|hw —— 分享/直达某节点的课程或作业
+  const hm=(location.hash||"").match(/open=([^&]+)(?:.*mode=(\w+))?/);
+  if(hm&&byId[decodeURIComponent(hm[1])]){const n=byId[decodeURIComponent(hm[1])];
+    pick(n.id);if(hm[2]==="hw")openHW(n);else if(hm[2]==="lesson")openLesson(n);}
+}
+function climbedCount(mp){try{const done=new Set(JSON.parse(localStorage.getItem(keyOf(mp.id))||"[]"));return mp.nodes.filter(n=>done.has(n.id)).length;}catch(e){return 0;}}
+function enterTower(mapId){hideMenu();initTower(mapId);}
+function switchMod(id){
+  fetch("/api/load?id="+encodeURIComponent(id)).then(r=>r.json()).then(d=>{
+    if(d.ok)location.reload();else alert(d.error||"切换失败");
+  }).catch(()=>alert("切换失败：本地 server 没连上"));
+}
+// ---- 主菜单：列出当前课包里的各座塔（basic/full），点卡进塔 ----
+function hideMenu(){document.getElementById("menu").classList.add("hidden");}
+function showMenu(){document.getElementById("menu").classList.remove("hidden");renderMenu();}
+function renderMenu(){
+  const box=document.getElementById("mod-cards");box.innerHTML="";
+  // 多门课包时，顶部一排“换课包”
+  if(MODS.length>1){
+    const row=document.createElement("div");row.className="course-row";row.innerHTML='<span class="course-lbl">课包</span>';
+    MODS.forEach(m=>{const b=document.createElement("button");b.className="course-pill"+(m.active?" on":"");
+      b.textContent=(m.name||m.id)+(m.version&&m.version!=="dev"?" "+m.version:"");
+      b.onclick=()=>{if(!m.active)switchMod(m.id);};row.appendChild(b);});
+    box.appendChild(row);
+  }
+  // 当前课包的各座塔
+  const maps=window.TOWER_MAPS||{};
+  Object.values(maps).forEach(mp=>{
+    const cl=climbedCount(mp),tot=mp.nodes.length,c=document.createElement("div");c.className="mod-card";
+    c.innerHTML='<h3>'+esc(mp.title||mp.id)+'</h3>'+
+      '<div class="desc">'+esc(mp.desc||"")+'</div>'+
+      '<div class="stat"><span><b>'+tot+'</b> 关</span>'+(cl?'<span>已点亮 <b>'+cl+'</b>/'+tot+'</span>':'')+'</div>'+
+      '<span class="go">'+(cl?"继续 ▸":"开始 ▸")+'</span>';
+    c.onclick=()=>enterTower(mp.id);
+    box.appendChild(c);
+  });
+  // 导入课包卡
+  const imp=document.createElement("div");imp.className="mod-card import";
+  imp.innerHTML='<div><div class="imp-plus">＋</div><h3>导入课包</h3><div class="desc">买课后拿到 .zip，导进来就能开课</div><span class="go">选择 .zip ▸</span></div>';
+  imp.onclick=pickModZip;box.appendChild(imp);
+  document.getElementById("menu-foot").textContent="";  // 平时空着；导入时显进度
+}
+function pickModZip(){
+  const inp=document.createElement("input");inp.type="file";inp.accept=".zip,application/zip";
+  inp.onchange=()=>{const f=inp.files&&inp.files[0];if(f)uploadMod(f);};
+  inp.click();
+}
+function uploadMod(f){
+  const foot=document.getElementById("menu-foot");
+  foot.textContent="⏳ 导入中… "+f.name+"（"+((f.size/1048576)|0)+"MB，别关页面）";
+  const fd=new FormData();fd.append("mod",f);
+  fetch("/api/upload-mod",{method:"POST",body:fd}).then(r=>r.json()).then(d=>{
+    if(d.ok){foot.textContent="✅ 导入成功："+(d.name||d.id)+" "+(d.version||"")+"——在“课包”里切过去开始";
+      fetch("/api/mods").then(r=>r.json()).then(x=>{MODS=x.mods||[];ACTIVE=x.active||"";renderMenu();});}
+    else foot.textContent="✘ 导入失败："+(d.error||"");
+  }).catch(()=>{foot.textContent="✘ 导入失败：本地 server 没连上，或文件太大";});
+}
+function bootstrap(){
+  document.getElementById("tomenu").onclick=()=>showMenu();
+  fetch("/api/health").then(r=>r.json()).then(d=>{SERVER=!!d.ok;}).catch(()=>{SERVER=false;})
+    .finally(()=>document.getElementById("banner").classList.toggle("show",!SERVER));
+  fetch("/api/mods").then(r=>r.json()).then(d=>{
+    MODS=d.mods||[];ACTIVE=d.active||"";renderMenu();
+  }).catch(()=>{                                                 // server 没连上：也能进（用已加载的数据）
+    MODS=[];renderMenu();
+  });
+}
+if(!window.TOWER_MAPS)document.body.innerHTML="<p style='padding:40px'>没找到 maps.js —— 先在 爬塔/ 里跑 <code>python _gen.py</code>。</p>";
+else if(!window.TOWER_CONTENT)document.body.innerHTML="<p style='padding:40px'>没找到 content.js —— 跑 <code>python _gen.py</code> 重新生成。</p>";
+else bootstrap();
+</script>
+</body>
+</html>

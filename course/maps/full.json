@@ -1,0 +1,115 @@
+{
+  "id": "full",
+  "title": "Unity APK 逆向入门（认识 → 装上真机 → 上手扒一层）",
+  "desc": "装好环境 → 把 Unity 游戏装上真机 → 解开游戏包 → C#/Lua/资源/Java 各扒一层，读到里面的东西。每章都有可运行的演示 + 自动批改的作业。",
+  "acts": [
+    {
+      "id": "fa0",
+      "title": "地基 · 环境准备"
+    },
+    {
+      "id": "fa1",
+      "title": "APK 入门 · 解开包 + 装上真机"
+    },
+    {
+      "id": "fa2",
+      "title": "读懂各层 · 每层一个速通（选一条爬）"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "0.0",
+      "act": "fa0",
+      "title": "机器与设备准备",
+      "chapter": "p0-00-prep",
+      "type": "rest",
+      "flag": "FLAG{urev-0.0-device-ready}",
+      "requires": [],
+      "mode": "env"
+    },
+    {
+      "id": "0.1",
+      "act": "fa0",
+      "title": "环境配置 · 工具清单",
+      "chapter": "p0-01-env-setup",
+      "type": "rest",
+      "flag": "FLAG{urev-0.1-toolchain-ready}",
+      "requires": [
+        "0.0"
+      ],
+      "mode": "env"
+    },
+    {
+      "id": "1.1",
+      "act": "fa1",
+      "title": "APK 分层结构",
+      "chapter": "p1-01-apk-layers",
+      "type": "normal",
+      "flag": "FLAG{urev-1.1-elf-metadata-luac-assetbundle-dex}",
+      "requires": [
+        "0.1"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "1.2",
+      "act": "fa1",
+      "title": "认识靶子 + 工具链",
+      "chapter": "p1-02-env-and-target",
+      "type": "normal",
+      "flag": "FLAG{urev-1.2-target-installed}",
+      "requires": [
+        "1.1"
+      ],
+      "mode": "env"
+    },
+    {
+      "id": "3.1",
+      "act": "fa2",
+      "title": "C# 出骨架",
+      "chapter": "p3-01-il2cpp-skeleton",
+      "type": "normal",
+      "flag": "FLAG{urev-3.1-string-literal-in-metadata}",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.1",
+      "act": "fa2",
+      "title": "Lua 认形态",
+      "chapter": "p4-01-lua-forms",
+      "type": "normal",
+      "flag": "FLAG{urev-4.1-xor-lua-cracked}",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "6.1",
+      "act": "fa2",
+      "title": "DEX 反编译",
+      "chapter": "p6-01-dex",
+      "type": "normal",
+      "flag": "FLAG{urev-6.1-dex-decompiled}",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "7.1",
+      "act": "fa2",
+      "title": "AssetBundle 提取",
+      "chapter": "p7-01-resources-extract",
+      "type": "normal",
+      "flag": "FLAG{urev-7.1-ab-image}",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    }
+  ]
+}
