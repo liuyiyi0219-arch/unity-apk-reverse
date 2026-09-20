@@ -1,0 +1,11 @@
+真机实测输出（Pixel 4 / frida-server 17.4.0 / -H 127.0.0.1:27042 attach）
+======================================================================
+[*] attached to 22689
+  >> libil2cpp base = 0x7b13c0c000
+  >> [hook] GoldReward(level=5) -> 85
+  >> [static] GoldReward(5)  = 85     期望 85     ✓ 静态还原正确
+  >> [hook] GoldReward(level=10) -> 310
+  >> [static] GoldReward(10) = 310    期望 310    ✓
+  >> [hook] GoldReward(level=7) -> 157
+  >> [static] GoldReward(7)  = 157    期望 157    ✓
+  （另一次运行）装 replace hook 后：GoldReward(5) = 99999  ✓ hook 改返回值生效

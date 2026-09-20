@@ -1,0 +1,6 @@
+Id,Name,Price,Type
+int,string,int,int
+道具ID,名字,价格,类型
+1,Potion,50,1
+2,Sword,500,2
+3,Shield,400,3

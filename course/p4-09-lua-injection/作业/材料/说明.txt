@@ -1,0 +1,25 @@
+luainject.apk —— 一个 Unity + toLua 的爬塔小游戏（包名 com.course.lua49）。主体是 C# 壳
+（UI + 回合），战斗逻辑跑在 libtolua.so 的 Lua 5.1 VM 里。flag 只作为运行时 Lua 全局 __secret
+活在 lua_State 里（battle49.lua 用异或字节在运行时拼出它——脚本文本没明文、strings 抠不到、
+界面/logcat 也不显）。C# 每帧调一次 lua_pcall 跑心跳（heartbeat）——这就是高频 hook 点。
+
+inject_secret.js —— reverser 的答案脚本：hook libtolua.so 的 lua_pcall，onEnter 的 args[0] 就是
+活着的 lua_State*（在 Lua 线程上安全）；luaL_loadstring("return __secret")+lua_pcall 注入、
+lua_tolstring 读回。带重入保护（我们注入的 lua_pcall 会再次触发本 hook）。
+
+拿 flag：
+  adb install -r -g luainject.apk
+  adb shell am start -n com.course.lua49/com.unity3d.player.UnityPlayerActivity
+  # frida attach（PID 方式最稳，见下）
+  python drive.py  $(adb shell pidof com.course.lua49)   -l inject_secret.js
+  → [+] __secret (flag) = FLAG{...}
+
+★真机踩过的坑：
+ · 设备端 florida / frida-server 必须以 root 运行（uid=0）才能 ptrace 目标；以 shell 用户跑会
+   PermissionDenied。用 su 起：su -c "/data/local/tmp/florida-... -D &"，ps 里确认 USER=root。
+ · 进程枚举可能被反检测改坏（frida-ps -U 报 "unable to find process system_server"）——不影响
+   PID attach。用 adb shell pidof <pkg> 拿 PID，dev.attach(pid) 直接挂。
+ · libtolua.so 已导出 lua_pcall / luaL_loadstring / lua_tolstring（llvm-nm -D 看得到，均为 T）。
+ · 注入时屏幕要亮着、com.course.lua49 保持前台：Unity 锁屏/切后台不跑 player loop，就不调
+   lua_pcall，hook 装上了也读不到 __secret（一直 None）。先 adb shell input keyevent 224（唤醒）
+   + keyevent 82（解锁），把游戏拉到前台，一帧心跳就能读回 flag。

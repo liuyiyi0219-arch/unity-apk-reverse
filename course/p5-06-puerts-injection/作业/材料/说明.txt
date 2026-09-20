@@ -1,0 +1,22 @@
+puerts-inject.apk —— puerts(V8) App。flag 只作为运行时 JS 全局 globalThis.__secret 活在 V8 里
+（JS 包里没明文、strings 抠不到；只有 +7 编码的字节表）。RewardDemo.Update 每帧 env.Eval("__tick(n)")
+制造高频 eval——这就是抓句柄的点。
+
+inject.js —— reverser 的答案脚本：hook libpuerts.so 的 C 导出 Eval(isolate, code, path)，第一次触发时
+args[0] 就是活着的 isolate 句柄（在 JS/Unity 主线程上安全），再用同一个 Eval 注入我们的 JS
+("'EXFIL:'+globalThis.__secret")，用 GetStringFromResult 读回返回值 = flag。
+
+拿 flag（真机验过，复现两次）：
+  adb install -r puerts-inject.apk ; 启动它
+  python drive.py inject.js      # PID attach（见下坑）
+  → [inject] ... EXFIL:FLAG{...}
+
+★坑（真机踩过）：
+ · Unity 主循环在【息屏或锁屏时会暂停】（即便 activity 显示 Resumed）——每帧 eval 停了、hook 抓不到。
+   必须先 KEYCODE_WAKEUP + wm dismiss-keyguard 真正唤醒解锁，Eval 才每帧触发。
+ · frida 客户端版本必须和设备端一致（17.4.0）；florida 进程枚举坏 → 远端 TCP + 按 PID attach
+   （adb forward tcp:27055; add_remote_device('127.0.0.1:27055'); dev.attach(pid)），别 enumerate。
+ · 读返回值用 GetStringFromResult(holder,&len)，不是 GetStringFromValue（那是读 JS 参数值的，
+   喂 ResultInfo 会崩 access violation）。
+ · 这个裸反射后端 App 没 import log.mjs → globalThis.console 没接上，注入的 console.log 是空操作、
+   进不了 logcat；可靠的外泄是【读注入 eval 的返回值】（inject.js 就是这么干的）。

@@ -1,0 +1,16 @@
+两部分：
+
+【A】差分分析（graded）
+  reward.vmmod.luac      —— opcode 被重排过的 Lua 5.1 字节码（header 正常，只是指令 opcode 换了号）
+  reward.standard.ops.txt —— 同源标准反汇编锚点（位置→标准 opcode）
+  reward.lua             —— 源码
+  solution.template.txt  —— 答卷格式
+  任务：逐位比 reward.vmmod.luac vs reward.standard.ops.txt，恢复映射【魔改编号→标准 opcode】，
+        写 solution.txt 交 check.exe。
+
+【B】配套 Unity+xLua 游戏（逆 libxlua.so 恢复映射）
+  xlua-op-demo.apk —— 真 Unity+xLua 小游戏，它的 lua 引擎被真魔改：libxlua.so 里 VM 的
+      opcode 编号被重排（和 reward.vmmod.luac 同一套映射）。header 是标准的，所以标准
+      unluac 过了头却把指令解成垃圾/崩溃。
+  动手：unzip 取 lib/arm64-v8a/libxlua.so，逆 luaV_execute（VM 主 dispatch，switch/跳表），
+        看每个 opcode 号跳到哪个操作 → 直接读出映射表（比差分更硬但更直接，实战常用）。

@@ -1,0 +1,43 @@
+--- OpcodeMap.LUA51.before.java	2026-07-27 10:46:08.540578500 +0800
++++ OpcodeMap.LUA51.after.java	2026-07-27 10:46:08.540578500 +0800
+@@ -1,18 +1,18 @@
+ case LUA51:
+         map = new Op[38];
+-        map[0] = Op.MOVE;
+-        map[1] = Op.LOADK;
++        map[0] = Op.GETGLOBAL;   // ← 魔改 VM 重排
++        map[1] = Op.ADD;   // ← 魔改 VM 重排
+         map[2] = Op.LOADBOOL;
+         map[3] = Op.LOADNIL;
+         map[4] = Op.GETUPVAL;
+-        map[5] = Op.GETGLOBAL;
++        map[5] = Op.MOVE;   // ← 魔改 VM 重排
+         map[6] = Op.GETTABLE;
+         map[7] = Op.SETGLOBAL;
+         map[8] = Op.SETUPVAL;
+         map[9] = Op.SETTABLE;
+         map[10] = Op.NEWTABLE;
+         map[11] = Op.SELF;
+-        map[12] = Op.ADD;
++        map[12] = Op.LOADK;   // ← 魔改 VM 重排
+         map[13] = Op.SUB;
+         map[14] = Op.MUL;
+         map[15] = Op.DIV;
+@@ -22,7 +22,7 @@
+         map[19] = Op.NOT;
+         map[20] = Op.LEN;
+         map[21] = Op.CONCAT;
+-        map[22] = Op.JMP;
++        map[22] = Op.RETURN;   // ← 魔改 VM 重排
+         map[23] = Op.EQ;
+         map[24] = Op.LT;
+         map[25] = Op.LE;
+@@ -30,7 +30,7 @@
+         map[27] = Op.TESTSET;
+         map[28] = Op.CALL;
+         map[29] = Op.TAILCALL;
+-        map[30] = Op.RETURN;
++        map[30] = Op.JMP;   // ← 魔改 VM 重排
+         map[31] = Op.FORLOOP;
+         map[32] = Op.FORPREP;
+         map[33] = Op.TFORLOOP;

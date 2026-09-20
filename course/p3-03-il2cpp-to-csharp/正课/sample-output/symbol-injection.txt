@@ -1,0 +1,36 @@
+符号注入前后对照（CalcDamage，RVA 0x600DB8）
+================================================
+
+【注入前 · 3.2 的裸伪 C】—— 匿名 FUN_/DAT_/param_N
+------------------------------------------------
+int FUN_00700db8(float param_1,int param_2,int param_3)
+{
+  if (DAT_00cbca8b == '\0') {
+    FUN_00671468(PTR_DAT_00c3d908);
+    DAT_00cbca8b = '\x01';
+  }
+  ...
+  param_1 = (((float)param_2 * (float)param_2) / (float)(param_3 + param_2)) * param_1;
+  ...
+}
+
+【注入后 · 喂 script.json 给 Ghidra 脚本重命名 + 套 struct】—— 具名
+------------------------------------------------
+int GameLogic$$CalcDamage(float critMul,int atk,int def)
+{
+  if (GameLogic__cctor_finished == '\0') {
+    il2cpp_runtime_class_init(GameLogic_TypeInfo);
+    GameLogic__cctor_finished = '\x01';
+  }
+  ...
+  critMul = (((float)atk * (float)atk) / (float)(def + atk)) * critMul;
+  ...
+}
+
+说明：
+- script.json 存了 RVA → 方法名/类型/字段偏移 的完整映射，机械重命名，脚本干的。
+- FUN_00700db8       → GameLogic$$CalcDamage
+- DAT_00cbca8b       → GameLogic__cctor_finished（类初始化标志）
+- FUN_00671468       → il2cpp_runtime_class_init
+- param_1/2/3        → critMul/atk/def（按签名回填；顺序仍是寄存器序，翻译时对回源码序）
+- 注入后可读性陡增，但语法糖（yield/lambda 等）还需第二步“模式识别”折回。

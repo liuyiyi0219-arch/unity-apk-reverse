@@ -4,17 +4,18 @@
 
 这一课的作业是**把逆向工具链备齐**。批改器探你本机 PATH 上的工具，必需项全绿就过；建议项缺了只提醒、不拦。
 
-本课只做**离线扒包 + 装真机**，所以清单按这 8 章实际用到的收窄——（本课用不到 .NET/ilspycmd）。
+你要备齐的清单：
 
 **必需（决定过不过）**
-- **adb** —— 把靶子游戏装到真机（见 0.0）
-- **python 3** —— 解包 / 脚本（3.1 grep、4.1 XOR 都靠它）
-- **UnityPy** —— 从 AssetBundle 导资源（7.1）：`pip install UnityPy`
-- **Java** —— 跑 jadx（jadx 是 Java 写的）
-- **jadx** —— 反编译 DEX（6.1）：下 [jadx](https://github.com/skylot/jadx)，解压后把 `bin/` 加 PATH
+- **Java**
+- **adb**（见 0.0）
+- **C# 反编译器**
 
 **建议（配上更顺手）**
-- **工具目录 `REVERSE_TOOLS`** —— 把下载的工具放一处、设环境变量指向它
+- **go**
+- **python**
+- **apktool、jadx**
+- **工具目录 `REVERSE_TOOLS`**
 
 ## 怎么交
 

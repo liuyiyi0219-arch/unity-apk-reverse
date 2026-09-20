@@ -1,0 +1,58 @@
+[
+  {
+    "point": "（全局）保护形态",
+    "layer": "triage",
+    "course": "3.7",
+    "value": "metadata=明文, 无加固库 → 明文流程",
+    "verify": "AF1BB1FA v31 ✓"
+  },
+  {
+    "point": "CalcDamage 伤害公式",
+    "layer": "C#/引擎",
+    "course": "3.1→3.3",
+    "value": "floor(atk*atk/(atk+def) * critMul)",
+    "verify": "源码一致 ✓"
+  },
+  {
+    "point": "GoldReward 金币公式",
+    "layer": "C#/引擎",
+    "course": "3.1→3.3",
+    "value": "10 + enemyLevel*enemyLevel*3",
+    "verify": "源码一致 ✓"
+  },
+  {
+    "point": "License 激活码",
+    "layer": "C#/引擎",
+    "course": "3.1→3.3+反推",
+    "value": "0x4A3B；可激活 code 如 UDH",
+    "verify": "反推成功 ✓"
+  },
+  {
+    "point": "SignatureCheck 签名校验",
+    "layer": "C#/引擎",
+    "course": "3.1 定位/2.3-2.4 绕过",
+    "value": "ExpectedSha1=E2462490F7ED575E6F12A6AF2430B4CFEE370306（fail-closed 比对）",
+    "verify": "逻辑定位 ✓"
+  },
+  {
+    "point": "Battle.CalcDamage (Lua)",
+    "layer": "脚本/逻辑",
+    "course": "4.1→6.1→4.2",
+    "value": "atk*atk/(atk+def)*critMul（与 C# 同式）",
+    "verify": "源码一致 ✓"
+  },
+  {
+    "point": "Hero/Item 配表数值",
+    "layer": "脚本/逻辑",
+    "course": "4.1→6.1→4.3",
+    "value": "3 英雄(Knight/Archer/Mage) Hp/Atk/Def/技能",
+    "verify": "还原为 CSV ✓"
+  },
+  {
+    "point": "GameConfig 数值",
+    "layer": "resources",
+    "course": "6.1（+3.1 type-tree）",
+    "value": "maxLevel=60 baseAtk=100 baseDef=40 critMultiplier=1.5 welcomeText=Welcome to CourseDemo",
+    "verify": "源码一致 ✓"
+  }
+]
