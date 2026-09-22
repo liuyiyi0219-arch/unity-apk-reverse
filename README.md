@@ -6,6 +6,12 @@
 
 零基础也能跟着做：每章都有可运行的演示 + 自动批改的作业，做对点亮、像爬塔一样通关。
 
+[![课程](https://img.shields.io/badge/课程-40_章-2ea44f)](#-课程内容40-章)
+[![平台](https://img.shields.io/badge/平台-Windows_+_Android-informational)](#-快速开始)
+[![引擎](https://img.shields.io/badge/引擎-Unity_IL2CPP-222)](#)
+![形态](https://img.shields.io/badge/形态-可运行演示_+_自动批改-orange)
+[![Stars](https://img.shields.io/github/stars/liuyiyi0219-arch/unity-apk-reverse?style=flat&logo=github)](https://github.com/liuyiyi0219-arch/unity-apk-reverse/stargazers)
+
 </div>
 
 ## 🎮 同一场战斗，改一个数值前后
@@ -69,4 +75,6 @@ mods/course/          ← 课程内容
 
 ## 📄 License
 
-课程内容仅供学习与授权测试使用。
+课程内容仅供**学习与授权测试**使用，允许个人学习与 Fork，禁止商业搬运/二次售卖。详见 [LICENSE](LICENSE)。
+
+课程里所有逆向技术只用于学习和你有权分析的目标，请勿用于任何违法用途。
