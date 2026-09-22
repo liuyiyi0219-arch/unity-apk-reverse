@@ -12,6 +12,10 @@
 ![形态](https://img.shields.io/badge/形态-可运行演示_+_自动批改-orange)
 [![Stars](https://img.shields.io/github/stars/liuyiyi0219-arch/unity-apk-reverse?style=flat&logo=github)](https://github.com/liuyiyi0219-arch/unity-apk-reverse/stargazers)
 
+<img src="assets/tower.png" width="820" alt="40 章像技能树一样一层层解锁：地基 → APK → C#/IL2CPP → Lua → puerts → DEX → 资源 → 毕业考">
+
+<sub>40 章排成一座塔：从最底下的环境地基，一路解到顶上的毕业考。每关做对作业才点亮、才解锁上面一层。</sub>
+
 </div>
 
 ## 🎮 同一场战斗，改一个数值前后
