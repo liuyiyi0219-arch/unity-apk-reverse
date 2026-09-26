@@ -1,0 +1,11 @@
+skills.luac.enc   —— 技能配表 luac，被【AES 对称加密】（整体加密，无密码学漏洞可爆破）。
+libgame_rodata.bin —— 从游戏 native/il2cpp 抠出来的 .rodata 片段，里面有解密相关的常量。
+
+任务：整体加密的破法 = 找 key + 认算法，不是破密码。
+ 1. strings libgame_rodata.bin —— 看解密函数名/算法指纹（AES-128-CBC）和 key/IV：
+      BuildSkillCipherKey 附近就是 16 字节 key 和 16 字节 IV。
+ 2. 用找到的 key/IV，AES-128-CBC 解 skills.luac.enc（PKCS7 去填充）：
+      openssl enc -d -aes-128-cbc -K <key的hex> -iv <iv的hex> -in skills.luac.enc -out skills.luac
+      或 python:  AES.new(key, AES.MODE_CBC, iv).decrypt(...) 再 unpad
+ 3. 解出来是标准 luac（头 \x1bLua）。反编译（unluac）或直接 strings 它——
+      代码里有一个 string 就是 flag。交给 check.exe FLAG{...}。

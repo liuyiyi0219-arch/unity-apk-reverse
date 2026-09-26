@@ -1,0 +1,11 @@
+puerts-plain-demo.apk —— 一个用 puerts（V8 后端）写的 Unity 小游戏。
+
+V8 后端的 puerts，脚本层就是【明文 JS】（V8 没法可靠上字节码）——本靶子没做任何混淆，
+拆开包直接就能读到脚本。flag 是脚本里一个字符串（游戏界面只显示奖励、不显 flag）。
+
+拿 flag：
+ 1. unzip puerts-plain-demo.apk（确认 lib/arm64-v8a/libpuerts.so = puerts+V8）；
+ 2. 脚本 JS 打进 Unity Resources（assets/bin/Data/… 的序列化数据里）——直接 strings / 翻出来读；
+ 3. 明文 JS 里那行 FLAG{...} 就是答案，交给 check.exe。
+
+（想看有源码级混淆、要去混淆才读得到的版本 → 5.2。）

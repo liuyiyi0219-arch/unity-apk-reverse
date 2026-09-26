@@ -1,0 +1,4 @@
+Id,Name,Hp,Atk,Def,SkillId
+1,Knight,1200,180,90,101
+2,Archer,800,240,50,102
+3,Mage,700,300,30,103

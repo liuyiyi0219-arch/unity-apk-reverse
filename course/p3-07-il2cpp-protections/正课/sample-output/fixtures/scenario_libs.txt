@@ -1,0 +1,7 @@
+# 假想“某加固 il2cpp 包”解包后 lib/arm64-v8a/ 下的 .so 列表（自造样例，库名均为虚构加固）
+libil2cpp.so
+libunity.so
+libmain.so
+libvmpack.so
+libshellcore.so
+libregmask.so

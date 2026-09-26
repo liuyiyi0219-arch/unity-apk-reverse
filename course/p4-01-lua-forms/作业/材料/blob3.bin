@@ -1,0 +1,7 @@
+-- shop.lua  (明文源码)
+local Shop = {}
+Shop.gold = 100
+function Shop.Buy(id) return true end
+-- 注: 明文脚本里放的是诱饵,不是真 flag
+local decoy = "FLAG{urev-4.1-plaintext-is-a-decoy}"
+return Shop

@@ -1,0 +1,23 @@
+--- parse_format.before.java	2026-07-27 10:31:48.670602400 +0800
++++ parse_format.after.java	2026-07-27 10:31:48.671601900 +0800
+@@ -1,7 +1,7 @@
+ protected void parse_format(ByteBuffer buffer, BHeader header, LHeaderParseState s) {
+     // 1 byte Lua "format"
+     int format = 0xFF & buffer.get();
+-    if(format != 0) {
++    if(format != 0 && format != 1) {
+       throw new IllegalStateException("The input chunk reports a non-standard lua format: " + format);
+     }
+     s.format = format;
+--- parse_instruction_size.before.java	2026-07-27 10:31:48.671601900 +0800
++++ parse_instruction_size.after.java	2026-07-27 10:31:48.671601900 +0800
+@@ -1,4 +1,9 @@
+ protected void parse_instruction_size(ByteBuffer buffer, BHeader header, LHeaderParseState s) {
++    if(s.format == 1) {
++      // Custom xLua format=1 (e.g. com.kingsgroup.ww2): the header omits the
++      // instruction-size byte entirely; instructions remain standard 4-byte.
++      return;
++    }
+     // 1 byte instruction size
+     int instructionSize = 0xFF & buffer.get();
+     if(header.debug) {

@@ -1,0 +1,8 @@
+mystery.ljbc —— 一份 strip 过的 LuaJIT 字节码（magic \x1bLJ）。
+
+任务：反编译它、读出里面的 flag。
+- 这是 LuaJIT，不是原生 Lua —— unluac 解不了，要用 luajit-decompiler-v2
+  （课程工具目录 ~/.reverse-tools/luajit-decompiler-v2/，把文件拖进 exe，
+   输出落它自己的 output/ 文件夹）。
+- 反编译出源码后，读那段"字节表 - 7"的解码逻辑，按它把字节表还原成字符串，
+  就是 flag。交给 check.exe FLAG{...}。

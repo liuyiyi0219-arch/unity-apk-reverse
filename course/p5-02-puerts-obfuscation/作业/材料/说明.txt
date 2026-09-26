@@ -1,0 +1,10 @@
+puerts-obf-demo.apk —— 同样是 puerts（V8 后端）游戏，但脚本 JS 用 javascript-obfuscator
+做了源码级混淆（字符串数组 + base64 编码 + 控制流平坦化）。
+
+V8 后端没法上字节码，所以安全只能加在源码层——这就是真实 V8 puerts 游戏的防守形态。
+flag 编在混淆 JS 里、界面/logcat 都不显，strings 也抠不到（成了 base64 字符串数组）。
+
+拿 flag：
+ 1. unzip apk，抠出打进 Resources 的混淆 JS（搜混淆特征名 a0_0x / _0x）；
+ 2. 去混淆：webcrack（npx webcrack game.obf.js）或字符串数组解码器——base64 数组还原成明文；
+ 3. 明文里那行 FLAG{...} 交给 check.exe。

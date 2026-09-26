@@ -1,0 +1,540 @@
+{
+  "id": "full",
+  "title": "Unity 逆向 · 全课爬塔（0.0 → Vampire 五层）",
+  "desc": "从地基往上把技能树点亮。每个节点做完对应章的作业、拿到 flag，就解锁上面的节点。",
+  "acts": [
+    {
+      "id": "act0",
+      "title": "地基 · 环境与 Frida"
+    },
+    {
+      "id": "act1",
+      "title": "总览 + APK 完整性"
+    },
+    {
+      "id": "act2",
+      "title": "C# / IL2CPP 层"
+    },
+    {
+      "id": "act3",
+      "title": "脚本层 Lua"
+    },
+    {
+      "id": "act3b",
+      "title": "脚本层 · puerts（TS/JS）"
+    },
+    {
+      "id": "act4",
+      "title": "Java / DEX"
+    },
+    {
+      "id": "act5",
+      "title": "资源 / AB"
+    },
+    {
+      "id": "boss",
+      "title": "综合实战 · Boss"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "0.0",
+      "act": "act0",
+      "title": "机器与设备准备",
+      "chapter": "p0-00-prep",
+      "type": "rest",
+      "flag": "",
+      "requires": [],
+      "mode": "env"
+    },
+    {
+      "id": "0.1",
+      "act": "act0",
+      "title": "环境配置 · 工具清单",
+      "chapter": "p0-01-env-setup",
+      "type": "rest",
+      "flag": "",
+      "requires": [
+        "0.0"
+      ],
+      "mode": "env"
+    },
+    {
+      "id": "0.2",
+      "act": "act0",
+      "title": "Frida 心智模型 + 调通",
+      "chapter": "p0-02-frida-setup",
+      "type": "rest",
+      "flag": "",
+      "requires": [
+        "0.1"
+      ],
+      "mode": "env"
+    },
+    {
+      "id": "0.3",
+      "act": "act0",
+      "title": "Frida gadget 免 root 注入",
+      "chapter": "p0-03-frida-gadget",
+      "type": "rest",
+      "flag": "",
+      "requires": [
+        "0.2"
+      ],
+      "mode": "env"
+    },
+    {
+      "id": "1.1",
+      "act": "act1",
+      "title": "APK 分层结构",
+      "chapter": "p1-01-apk-layers",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "0.1"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "1.2",
+      "act": "act1",
+      "title": "认识靶子 + 工具链",
+      "chapter": "p1-02-env-and-target",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "1.1"
+      ],
+      "mode": "env"
+    },
+    {
+      "id": "2.1",
+      "act": "act1",
+      "title": "拿到 APK：下载源 + 验真",
+      "chapter": "p2-01-apk-download",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "2.2",
+      "act": "act1",
+      "title": "重打包：解包→改→打回去能跑",
+      "chapter": "p2-02-apk-unpack",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "2.1"
+      ],
+      "mode": "upload",
+      "uploadName": "_upload.apk"
+    },
+    {
+      "id": "2.3",
+      "act": "act1",
+      "title": "签名校验",
+      "chapter": "p2-03-apk-integrity-check",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "2.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "2.4",
+      "act": "act1",
+      "title": "绕过签名校验",
+      "chapter": "p2-04-apk-repack-bypass",
+      "type": "boss",
+      "flag": "",
+      "requires": [
+        "2.3"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "3.1",
+      "act": "act2",
+      "title": "C# 出骨架",
+      "chapter": "p3-01-il2cpp-skeleton",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "3.2",
+      "act": "act2",
+      "title": "C# 读伪 C",
+      "chapter": "p3-02-il2cpp-static",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "3.1"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "3.3",
+      "act": "act2",
+      "title": "C# 还原真 C#",
+      "chapter": "p3-03-il2cpp-to-csharp",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "3.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "3.4",
+      "act": "act2",
+      "title": "C# 动态 hook",
+      "chapter": "p3-04-il2cpp-dynamic",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "3.3",
+        "0.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "3.5",
+      "act": "act2",
+      "title": "C# 反推 FlatBuffers 协议",
+      "chapter": "p3-05-flatbuffers-schema",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "3.3"
+      ],
+      "mode": "upload",
+      "uploadName": "_upload.py"
+    },
+    {
+      "id": "3.6",
+      "act": "act2",
+      "title": "C# 热更 DLL",
+      "chapter": "p3-06-csharp-hotupdate",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "3.3"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "3.7",
+      "act": "act2",
+      "title": "C# 破 metadata 加密",
+      "chapter": "p3-07-il2cpp-protections",
+      "type": "elite",
+      "flag": "",
+      "requires": [
+        "3.3"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "3.8",
+      "act": "act2",
+      "title": "native 破壳",
+      "chapter": "p3-08-unpack-native",
+      "type": "boss",
+      "flag": "",
+      "requires": [
+        "3.7",
+        "0.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "0.4",
+      "act": "act0",
+      "title": "unidbg：PC 仿真跑 native",
+      "chapter": "p0-04-unidbg",
+      "type": "rest",
+      "flag": "",
+      "requires": [
+        "0.3"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.1",
+      "act": "act3",
+      "title": "Lua 认形态",
+      "chapter": "p4-01-lua-forms",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.2",
+      "act": "act3",
+      "title": "Lua 反编译",
+      "chapter": "p4-02-lua-decompile",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "4.1"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.3",
+      "act": "act3",
+      "title": "Lua 配表还原",
+      "chapter": "p4-03-lua-config-to-csv",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "4.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.4",
+      "act": "act3",
+      "title": "Lua 动态 hook",
+      "chapter": "p4-04-lua-dynamic",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "4.2",
+        "0.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.5",
+      "act": "act3",
+      "title": "Lua 反推 Protobuf 协议",
+      "chapter": "p4-05-lua-protobuf-protocol",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "4.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.6",
+      "act": "act3",
+      "title": "Lua 破改格式",
+      "chapter": "p4-06-lua-defeat-format",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "4.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.7",
+      "act": "act3",
+      "title": "Lua 破改字节码",
+      "chapter": "p4-07-lua-defeat-bytecode",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "4.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.8",
+      "act": "act3",
+      "title": "Lua 破整体加密",
+      "chapter": "p4-08-lua-defeat-encryption",
+      "type": "boss",
+      "flag": "",
+      "requires": [
+        "4.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "4.9",
+      "title": "Lua 注入",
+      "chapter": "p4-09-lua-injection",
+      "act": "act3",
+      "type": "normal",
+      "requires": [
+        "4.4"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "5.1",
+      "title": "puerts 多后端 / 明文 JS",
+      "chapter": "p5-01-puerts",
+      "act": "act3b",
+      "type": "elite",
+      "requires": [
+        "1.2"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "5.2",
+      "title": "V8 破源码混淆",
+      "chapter": "p5-02-puerts-obfuscation",
+      "act": "act3b",
+      "type": "normal",
+      "requires": [
+        "5.1"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "5.3",
+      "title": "QuickJS 破改格式",
+      "chapter": "p5-03-quickjs-defeat-format",
+      "act": "act3b",
+      "type": "normal",
+      "requires": [
+        "5.2"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "5.4",
+      "title": "QuickJS 破改字节码",
+      "chapter": "p5-04-quickjs-defeat-bytecode",
+      "act": "act3b",
+      "type": "normal",
+      "requires": [
+        "5.3"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "5.5",
+      "title": "QuickJS 破整体加密",
+      "chapter": "p5-05-quickjs-defeat-encryption",
+      "act": "act3b",
+      "type": "normal",
+      "requires": [
+        "5.4"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "5.6",
+      "title": "puerts 注入",
+      "chapter": "p5-06-puerts-injection",
+      "act": "act3b",
+      "type": "normal",
+      "requires": [
+        "5.5",
+        "0.2"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "6.1",
+      "act": "act4",
+      "title": "DEX 反编译",
+      "chapter": "p6-01-dex",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "6.2",
+      "title": "DEX 破壳",
+      "chapter": "p6-02-dex-shell",
+      "act": "act4",
+      "type": "normal",
+      "requires": [
+        "6.1"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "7.1",
+      "act": "act5",
+      "title": "AssetBundle 提取",
+      "chapter": "p7-01-resources-extract",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "1.2"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "7.2",
+      "act": "act5",
+      "title": "AssetBundle 破部分加密",
+      "chapter": "p7-02-ab-encryption",
+      "type": "normal",
+      "flag": "",
+      "requires": [
+        "7.1"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "7.3",
+      "title": "策划数值 type-tree",
+      "chapter": "p7-03-gameconfig-values",
+      "act": "act5",
+      "type": "normal",
+      "requires": [
+        "7.1",
+        "3.1"
+      ],
+      "flag": "",
+      "mode": "flag"
+    },
+    {
+      "id": "8.1",
+      "act": "boss",
+      "title": "毕业考：逆穿 VampireSurvivors 五层全保护",
+      "chapter": "p8-01-capstone",
+      "type": "boss",
+      "flag": "",
+      "requires": [
+        "2.4",
+        "4.8",
+        "7.2",
+        "3.3"
+      ],
+      "mode": "flag"
+    },
+    {
+      "id": "final",
+      "act": "boss",
+      "title": "👑 登顶：全课通关",
+      "type": "final",
+      "flag": "",
+      "requires": [
+        "8.1",
+        "3.8"
+      ]
+    }
+  ]
+}

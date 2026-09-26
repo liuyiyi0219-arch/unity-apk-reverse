@@ -1,0 +1,6 @@
+Id,Name,Hp,Atk,Def,SkillId
+int,string,int,int,int,int
+英雄ID,名字,生命,攻击,防御,技能ID
+1,Knight,1200,180,90,101
+2,Archer,800,240,50,102
+3,Mage,700,300,30,103

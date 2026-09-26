@@ -1,0 +1,27 @@
+namespace Course.Net;
+
+enum CmdType : byte { Move = 0, Attack = 1, Skill = 2, Sync = 3 }
+
+table Vec2 {
+  x:float;
+  y:float;
+}
+
+table PlayerState {
+  id:int;
+  name:string;
+  hp:int = 100;
+  atk:int = 10;
+  crit:float = 1.5;
+  alive:bool = true;
+  pos:Vec2;
+}
+
+table BattleSync {
+  cmd:CmdType = Sync;
+  frame:uint;
+  players:[PlayerState];
+  seed:long;
+}
+
+root_type BattleSync;

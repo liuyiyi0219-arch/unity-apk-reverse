@@ -1,0 +1,15 @@
+syntax = "proto2";
+package net;
+
+message BattleResult {
+  required int32 hero_id = 1;
+  required int32 damage = 2;
+  required bool win = 3;
+  repeated int32 drop_items = 4;
+}
+
+message LoginReq {
+  required string account = 1;
+  required string password = 2;
+  optional int32 channel = 3;
+}

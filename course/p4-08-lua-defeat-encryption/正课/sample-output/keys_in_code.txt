@@ -1,0 +1,14 @@
+# 这些 key 在真实游戏里都是【build-time 常量】，逆代码就能拿到（不是猜出来的）：
+#
+# ① AES key 源：War.Script.MainLoop.AssetBundleEncryptKey  (HybridCLR Script.dll, static readonly string)
+#    算法：AES-256-CBC-PKCS7；key = md5(secret) 的 32 位小写 hex 当 32 字节；iv = md5(<ab_name>)[8:24]
+#    （照搬真实 recipe: com.lighthouse.freeplay.ameuno）
+AES_SECRET = ",lr,pbope#@^#982(@"
+AB_NAME    = luascript
+#
+# ② XXTEA key+sign 源：libtolua.so 的 setXXTEAKeyAndSign 符号 / .rodata 常量
+XXTEA_KEY  = CourseXXTEAKey01
+XXTEA_SIGN = LuaQ
+#
+# ③ XOR 单字节 key 源：C# AssetManager.BuildLuaXorKey()  (真实 recipe: com.global.szsslg, key=0x5D)
+XOR_KEY    = 0x5D
